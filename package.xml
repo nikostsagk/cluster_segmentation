@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>obj_recognition</name>
+  <name>sensor_stick</name>
   <version>0.0.0</version>
   <description>The obj_recognition package</description>
 
