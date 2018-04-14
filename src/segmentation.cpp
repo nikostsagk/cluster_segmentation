@@ -26,7 +26,6 @@ Author: Sean Cassero
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <obj_recognition/SegmentedClustersArray.h>
-#include <obj_recognition/ClusterData.h>
 
 
 class segmentation {
