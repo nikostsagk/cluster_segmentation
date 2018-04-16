@@ -48,27 +48,53 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="${width2} ${width2} ${length2}"/>
+        <box size="${width1} ${width1} ${length1}"/>
       </geometry>
-      <material name="white">
-        <color rgba="1.0 1.0 1.0 1.0"/>
+      <material name="blue">
+        <color rgba="0.0 0.0 0.8 1.0"/>
       </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="${width2} ${width2} ${length2}"/>
+        <box size="${width1} ${width1} ${length1}"/>
       </geometry>
     </collision>
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="${mass2}"/>
+      <mass value="${mass1}"/>
       <inertia
-        ixx="${mass2 / 12.0 * (width2*width2 + length2*length2)}" ixy="0.0" ixz="0.0"
-        iyy="${mass2 / 12.0 * (length2*length2 + width2*width2)}" iyz="0.0"
-        izz="${mass2 / 12.0 * (width2*width2 + width2*width2)}"/>
+              ixx="${mass1 / 12.0 * (width1*width1 + length1*length1)}" ixy="0.0" ixz="0.0"
+              iyy="${mass1 / 12.0 * (length1*length1 + width1*width1)}" iyz="0.0"
+              izz="${mass1 / 12.0 * (width1*width1 + width1*width1)}"/>
     </inertial>
   </link>
+
+  <!--<link name="link_2">-->
+    <!--<visual>-->
+      <!--<origin xyz="0 0 0" rpy="0 0 0"/>-->
+      <!--<geometry>-->
+        <!--<box size="${width2} ${width2} ${length2}"/>-->
+      <!--</geometry>-->
+      <!--<material name="white">-->
+        <!--<color rgba="1.0 1.0 1.0 1.0"/>-->
+      <!--</material>-->
+    <!--</visual>-->
+    <!--<collision>-->
+      <!--<origin xyz="0 0 0" rpy="0 0 0"/>-->
+      <!--<geometry>-->
+        <!--<box size="${width2} ${width2} ${length2}"/>-->
+      <!--</geometry>-->
+    <!--</collision>-->
+    <!--<inertial>-->
+      <!--<origin xyz="0 0 0" rpy="0 0 0"/>-->
+      <!--<mass value="${mass2}"/>-->
+      <!--<inertia-->
+        <!--ixx="${mass2 / 12.0 * (width2*width2 + length2*length2)}" ixy="0.0" ixz="0.0"-->
+        <!--iyy="${mass2 / 12.0 * (length2*length2 + width2*width2)}" iyz="0.0"-->
+        <!--izz="${mass2 / 12.0 * (width2*width2 + width2*width2)}"/>-->
+    <!--</inertial>-->
+  <!--</link>-->
 
 
   <!-- RGBD camera -->

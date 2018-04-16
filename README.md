@@ -25,13 +25,13 @@ run catkin_make in your ROS source directory
 
 start the simulation with roslaunch
 
-    $ roslaunch roslaunch obj_recognition robot_spawn.launch
+    $ roslaunch obj_recognition robot_spawn.launch
 
 start the segmentation node
 
-    $ rosrun obj_recognition segmentation
+    $ rosrun obj_recognition obj_recognition_segmentation
 
-the segmentation node publishes `sensor_msgs::PCLPointCloud2` messages to the `/pcl_objects` topic. You can visualize the segmentation in `RViz` by selecting that topic to view.
+the segmentation node publishes `sensor_msgs::PCLPointCloud2` messages to the `/obj_recognition/pcl_clusters` topic. You can visualize the segmentation in `RViz` by selecting that topic to view.
 
 
 ### Dependencies

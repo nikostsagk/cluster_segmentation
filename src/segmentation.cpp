@@ -36,7 +36,7 @@ public:
 
     // define the subscriber and publisher
     m_sub = m_nh.subscribe ("/obj_recognition/point_cloud", 1, &segmentation::cloud_cb, this);
-    m_clusterPub = m_nh.advertise<obj_recognition::SegmentedClustersArray> ("obj_recognition/pcl_clusters",1);
+    m_clusterPub = m_nh.advertise<obj_recognition::SegmentedClustersArray> ("/obj_recognition/pcl_clusters",1);
 
   }
 
@@ -51,10 +51,11 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
 
 }; // end class definition
 
-
 // define callback function
 void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
+
+    ROS_INFO("Received cloud_msg");
 
 
 
