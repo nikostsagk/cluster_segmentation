@@ -128,7 +128,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00999999978
       Style: Points
-      Topic: /camera/depth_registered/points
+      Topic: /obj_recognition/point_cloud
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -176,6 +176,8 @@ Visualization Manager:
           Value: true
         link_1:
           Value: true
+        link_2:
+          Value: true
         world:
           Value: true
       Marker Scale: 1
@@ -186,14 +188,21 @@ Visualization Manager:
       Tree:
         world:
           link_1:
-            {}
+            link_2:
+              camera_link:
+                camera_depth_frame:
+                  camera_depth_optical_frame:
+                    {}
+                camera_rgb_frame:
+                  camera_rgb_optical_frame:
+                    {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: link_1
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -229,10 +238,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.310399354
+      Pitch: 0.000398823991
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 0.93356055
+      Yaw: 0.0385642312
     Saved: ~
 Window Geometry:
   Camera:
