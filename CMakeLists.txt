@@ -1,22 +1,25 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(obj_recognition)
+project(cluster_segmentation)
 
 ## Add support for C++11, supported in ROS Kinetic and newer
-# add_definitions(-std=c++11)
+add_definitions(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-	dynamic_reconfigure
-	pcl_conversions
-	pcl_ros
-	roscpp
-	rospy
-	roslint
-	sensor_msgs
-	message_generation
-)
+        dynamic_reconfigure
+        pcl_conversions
+        pcl_ros
+        roscpp
+        rospy
+        roslint
+        sensor_msgs
+        shape_msgs
+        geometry_msgs
+        message_generation
+        tf_conversions
+        )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -52,21 +55,17 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-  FILES
-   DetectedObjectsArray.msg
-	 DetectedObject.msg
-	 SegmentedClustersArray.msg
-
-#   Message2.msg
- )
+add_message_files(
+        FILES
+        DetectedObjectsArray.msg
+        DetectedObject.msg
+        SegmentedClustersArray.msg
+)
 
 ## Generate services in the 'srv' folder
- add_service_files(
-   FILES
-   GetNormals.srv
-#   Service2.srv
- )
+#add_service_files(
+#        FILES
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -76,11 +75,13 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs
-	 sensor_msgs
- )
+generate_messages(
+        DEPENDENCIES
+        std_msgs
+        sensor_msgs
+        shape_msgs
+        geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -97,10 +98,8 @@ catkin_python_setup()
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
- generate_dynamic_reconfigure_options(
-   config/Pcl.cfg
-#   cfg/DynReconf2.cfg
- )
+#generate_dynamic_reconfigure_options(
+#)
 
 ###################################
 ## catkin specific configuration ##
@@ -112,11 +111,11 @@ catkin_python_setup()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES sensor_stick
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
-CATKIN_DEPENDS message_runtime
+        #  INCLUDE_DIRS include
+        #  LIBRARIES sensor_stick
+        #  CATKIN_DEPENDS roscpp rospy std_msgs
+        #  DEPENDS system_lib
+        CATKIN_DEPENDS message_runtime
 )
 
 ###########
@@ -127,7 +126,7 @@ CATKIN_DEPENDS message_runtime
 ## Your package locations should be listed before other locations
 include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -143,9 +142,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_cloud_transformer src/cloud_transformer.cpp)
-add_executable(${PROJECT_NAME}_segmentation src/segmentation.cpp)
-add_executable(${PROJECT_NAME}_feature_extractor src/feature_extractor.cpp)
+add_executable(${PROJECT_NAME}_icp_recognition src/ICPRecognition.cpp)
+add_executable(cluster_segmentation src/ClusterSegmentation.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -155,17 +153,14 @@ add_executable(${PROJECT_NAME}_feature_extractor src/feature_extractor.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(${PROJECT_NAME}_cloud_transformer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
-add_dependencies(${PROJECT_NAME}_segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
-add_dependencies(${PROJECT_NAME}_feature_extractor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+add_dependencies(${PROJECT_NAME}_icp_recognition ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(cluster_segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_cloud_transformer
-  ${catkin_LIBRARIES}
+target_link_libraries(${PROJECT_NAME}_icp_recognition ${catkin_LIBRARIES})
+target_link_libraries(cluster_segmentation ${catkin_LIBRARIES})
 
-)
-target_link_libraries(${PROJECT_NAME}_segmentation ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_feature_extractor ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
