@@ -10,6 +10,8 @@ Author: Sean Cassero
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_types_conversion.h>
+#include <pcl/filters/conditional_removal.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/sample_consensus/method_types.h>
@@ -85,8 +87,6 @@ void ClusterSegmentation::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &
 //    publishPointCloud(xyzCloudPtr, cloudMsg->header.frame_id);
     ROS_INFO("Applied voxel grid filter");
 
-    //perform passthrough filtering to remove table leg
-
     // create a pcl object to hold the passthrough filtered results
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrFiltered(new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -94,11 +94,59 @@ void ClusterSegmentation::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &
     pcl::PassThrough<pcl::PointXYZRGB> pass;
     pass.setInputCloud (xyzCloudPtr);
     pass.setFilterFieldName ("z");
-    pass.setFilterLimits (.5, 1.1);
+    pass.setFilterLimits (.5, 2.5);
     //pass.setFilterLimitsNegative (true);
     pass.filter (*xyzCloudPtrFiltered);
 
-    publishPointCloud(xyzCloudPtrFiltered, cloudMsg->header.frame_id);
+    // Convert the filtered pointcloud from RGB to HSV
+    pcl::PointCloud<pcl::PointXYZHSV>::Ptr xyzCloudHSV(new pcl::PointCloud<pcl::PointXYZHSV>);
+    pcl::PointCloudXYZRGBtoXYZHSV(*xyzCloudPtr, *xyzCloudHSV);
+
+    // Filter out the non purple values
+    pcl::PointCloud<pcl::PointXYZHSV>::Ptr xyzCloudHSVfiltered(new pcl::PointCloud<pcl::PointXYZHSV>);
+    pcl::ConditionAnd<pcl::PointXYZHSV>::Ptr hRange(new pcl::ConditionAnd<pcl::PointXYZHSV> ());
+    pcl::ConditionAnd<pcl::PointXYZHSV>::Ptr sRange(new pcl::ConditionAnd<pcl::PointXYZHSV> ());
+    pcl::ConditionAnd<pcl::PointXYZHSV>::Ptr vRange(new pcl::ConditionAnd<pcl::PointXYZHSV> ());
+    hRange->addComparison(pcl::FieldComparison<pcl::PointXYZHSV>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZHSV>("h", pcl::ComparisonOps::GT, 140.0)));
+    hRange->addComparison(pcl::FieldComparison<pcl::PointXYZHSV>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZHSV>("h", pcl::ComparisonOps::LT, 260.0)));
+    sRange->addComparison(pcl::FieldComparison<pcl::PointXYZHSV>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZHSV>("s", pcl::ComparisonOps::GT, 0.039)));
+    sRange->addComparison(pcl::FieldComparison<pcl::PointXYZHSV>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZHSV>("s", pcl::ComparisonOps::LT, 1.0)));
+    vRange->addComparison(pcl::FieldComparison<pcl::PointXYZHSV>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZHSV>("v", pcl::ComparisonOps::GT, 0.039)));
+    vRange->addComparison(pcl::FieldComparison<pcl::PointXYZHSV>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZHSV>("v", pcl::ComparisonOps::LT, 1.0)));
+    
+    pcl::ConditionalRemoval<pcl::PointXYZHSV> hfilter;
+    pcl::ConditionalRemoval<pcl::PointXYZHSV> sfilter;
+    pcl::ConditionalRemoval<pcl::PointXYZHSV> vfilter;
+    
+    hfilter.setCondition (hRange);
+    hfilter.setInputCloud (xyzCloudHSV);
+    hfilter.setKeepOrganized (false);
+    hfilter.filter (*xyzCloudHSVfiltered);
+    
+    sfilter.setCondition (sRange);
+    sfilter.setInputCloud (xyzCloudHSVfiltered);
+    sfilter.setKeepOrganized (false);
+    sfilter.filter (*xyzCloudHSVfiltered);
+    
+    vfilter.setCondition (vRange);
+    vfilter.setInputCloud (xyzCloudHSVfiltered);
+    vfilter.setKeepOrganized (false);
+    vfilter.filter (*xyzCloudHSVfiltered);
+    
+    std::cout << xyzCloudHSV->points.size() << " " << xyzCloudHSVfiltered->points.size() << std::endl;
+    
+    // Convert the HSV Filtered pointcloud back to RGB
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudRGBfiltered(new pcl::PointCloud<pcl::PointXYZRGB>);
+    xyzCloudRGBfiltered->width = xyzCloudHSVfiltered->width;
+    xyzCloudRGBfiltered->height = xyzCloudHSVfiltered->height;
+    xyzCloudRGBfiltered->points.resize (xyzCloudRGBfiltered->width * xyzCloudRGBfiltered->height);
+
+    for (int i=0; i<xyzCloudHSVfiltered->points.size(); i++) {
+    	pcl::PointXYZHSVtoXYZRGB(xyzCloudHSVfiltered->points[i], xyzCloudRGBfiltered->points[i]);
+    }
+
+    
+    //publishPointCloud(xyzCloudRGBfiltered, cloudMsg->header.frame_id);
     ROS_INFO("Applied passthrough filter");
 
     // create a pcl object to hold the ransac filtered results
@@ -116,14 +164,14 @@ void ClusterSegmentation::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &
     seg1.setMethodType (pcl::SAC_RANSAC);
     seg1.setDistanceThreshold(0.04);
 
-    seg1.setInputCloud (xyzCloudPtrFiltered);
+    seg1.setInputCloud (xyzCloudRGBfiltered);
     seg1.segment (*inliers, *coefficients);
 
     // Create the filtering object
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
 
     //extract.setInputCloud (xyzCloudPtrFiltered);
-    extract.setInputCloud(xyzCloudPtrFiltered);
+    extract.setInputCloud(xyzCloudRGBfiltered);
     extract.setIndices(inliers);
     extract.setNegative(true);
     extract.filter(*xyzCloudPtrRansacFiltered);
@@ -165,8 +213,15 @@ void ClusterSegmentation::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &
 
         // now we are in a vector of indices pertaining to a single cluster.
         // Assign each point corresponding to this cluster in xyzCloudPtrPassthroughFiltered a specific color for identification purposes
-        for (const int index : cluster_indices.indices)
+        int red = rand() % 256;
+        int green = rand() % 256;
+        int blue = rand() % 256;
+
+	for (const int index : cluster_indices.indices)
         {
+	    xyzCloudPtrRansacFiltered->points[index].r = red;
+	    xyzCloudPtrRansacFiltered->points[index].g = green;
+	    xyzCloudPtrRansacFiltered->points[index].b = blue;
             clusterPtr->points.push_back(xyzCloudPtrRansacFiltered->points[index]);
         }
 
